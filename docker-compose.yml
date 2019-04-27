@@ -1,15 +1,42 @@
-db:
-  image: mysql:latest
-  environment:
-    - MYSQL_DATABASE=koel
-    - MYSQL_ROOT_PASSWORD=secret
-
-web:
-  image: nampnq/koel:feature-docker
-  links:
-    - db:db
-  ports:
-    - 8000:80
-  volumes:
-    - ~/Music:/home/koel/media
-    - .env:/var/www/html/.env
+version: '2'
+volumes:
+    mysql:
+        driver: local
+services:
+    web:
+        build: .
+        container_name: koel_app
+        links:
+            - 'mysql:mysql'
+        depends_on:
+            - mysql
+        env_file: .env
+        ports:
+            - '8000:80'
+        volumes:
+            - '~/Music:/home/koel/media'
+            - '.env:/var/www/html/.env'
+    mysql:
+        image: 'mysql:5.6'
+        container_name: koel_mysql
+        restart: always
+        volumes:
+          - ~/.minidock/data/mysql:/var/lib/mysql
+        environment:
+            - MYSQL_DATABASE=koel
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=root
+            - MYSQL_ROOT_PASSWORD=root
+    phpmyadmin:
+        build: ./docker/phpmyadmin
+        environment:
+            - PMA_ARBITRARY=1
+            - MYSQL_USER=root
+            - MYSQL_PASSWORD=root
+            - MYSQL_ROOT_PASSWORD=root
+        ports:
+            - '8080:80'
+        depends_on:
+            - mysql
+        volumes:
+            - './docker/phpmyadmin/themes/metro/:/var/www/html/themes/metro/'
