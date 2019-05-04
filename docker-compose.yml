@@ -5,7 +5,7 @@ volumes:
 services:
     web:
         build: .
-        container_name: koel_app
+        container_name: koel_web
         links:
             - 'mysql:mysql'
         depends_on:
@@ -17,17 +17,20 @@ services:
             - '~/Music:/home/koel/media'
             - '.env:/var/www/html/.env'
     mysql:
-        image: 'mysql:5.6'
+        hostname: mysql
         container_name: koel_mysql
-        restart: always
+        build: ./docker/mysql
+        environment:
+          - MYSQL_DATABASE=koel
+          - MYSQL_USER=root
+          - MYSQL_PASSWORD=root
+          - MYSQL_ROOT_PASSWORD=root
         volumes:
           - ~/.minidock/data/mysql:/var/lib/mysql
-        environment:
-            - MYSQL_DATABASE=koel
-            - MYSQL_USER=root
-            - MYSQL_PASSWORD=root
-            - MYSQL_ROOT_PASSWORD=root
+        ports:
+          - "33066:3306"
     phpmyadmin:
+        container_name: koel_phpmyadmin
         build: ./docker/phpmyadmin
         environment:
             - PMA_ARBITRARY=1
